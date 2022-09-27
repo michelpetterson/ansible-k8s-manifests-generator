@@ -1,0 +1,19 @@
+namespace: {{ _USERID_ }}-ns
+#namePrefix: dev-
+#nameSuffix: "-001"
+commonLabels:
+  app: {{ _APP_ }}
+
+commonAnnotations:
+  appOwner: {{ _OWNER_ }}
+  callNumber: {{ _PHONE_NUMBER_ }}
+
+resources:
+- namespace.yaml
+- configmap.yaml
+- secrets.yaml 
+- service.yaml
+- deployment.yaml
+{% if _VOLUME_ == 'yes' %}
+- pvc.yaml
+{% endif %}

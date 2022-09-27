@@ -1,0 +1,9 @@
+configmap:
+  MYSQL_DATABASE: "zpdb"
+  
+secrets:
+  MYSQL_ROOT_PASSWORD: "root0018_"
+  MYSQL_USER: "zpuser"
+  MYSQL_PASSWORD: "Zp2o18_"
+
+

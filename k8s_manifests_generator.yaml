@@ -1,0 +1,53 @@
+---
+- hosts: localhost
+  connection: local
+  become: no
+  gather_facts: no
+
+  tasks:
+    - name: Include vars
+      include_vars: vars.yaml
+
+    - name: Create a directory if it does not exist
+      file:
+         path: "manifests/{{ _APP_ }}"
+         state: directory
+         mode: '0755'
+
+    - name: Generating Namespace Manifest
+      template: 
+        src: "templates/namespace.yaml.j2"
+        dest: "manifests/{{ _APP_ }}/namespace.yaml"
+
+    - name: Generating ConfigMap Manifest
+      template: 
+        src: "templates/configmap.yaml.j2"
+        dest: "manifests/{{ _APP_ }}/configmap.yaml"
+
+    - name: Generating Secrets Manifest
+      template: 
+        src: "templates/secrets.yaml.j2"
+        dest: "manifests/{{ _APP_ }}/secrets.yaml"
+
+    - name: Generating Service Manifest
+      template: 
+        src: "templates/service.yaml.j2"
+        dest: "manifests/{{ _APP_ }}/service.yaml"
+      when: _PORT_ != "" or _PORT_ != "none" or _PORT_ != "false" or _PORT_ != "no" or _PORT_ != "disabled" or _PORT_ != "disable"
+
+    - name: Generating Persistent Volume Claim Manifest
+      template: 
+        src: "templates/pvc.yaml.j2"
+        dest: "manifests/{{ _APP_ }}/pvc.yaml"
+      when: _VOLUME_ == "yes" or _VOLUME_ == "true" or _VOLUME_ == "enabled" or _VOLUME_ == "enable"
+
+    - name: Generating Deployment Manifest
+      template: 
+        src: "templates/deployment.yaml.j2"
+        dest: "manifests/{{ _APP_ }}/deployment.yaml"
+
+    - name: Generating Kustomization Manifest
+      template: 
+        src: "templates/kustomization.yaml.j2"
+        dest: "manifests/{{ _APP_ }}/kustomization.yaml"
+

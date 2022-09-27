@@ -1,0 +1,85 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ _APP_ }}-deploy
+  namespace: {{ _USERID_ }}-ns
+  labels:
+    app: {{ _APP_ }}
+    type: app-user
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ _APP_ }}
+  template:
+    metadata:
+      name: {{ _APP_ }}-pod
+      labels:
+        app: {{ _APP_ }}
+        type: app-user
+    spec:
+{% if _SERVICE_ == 'app' %}
+      initContainers:
+      - name: init-mysql
+        image: busybox
+        #command: ['sh', '-c', 'echo "COMMAND HERE"']
+{% endif %}
+      containers:
+      - image: {{ _ImageName_ }}
+        name: {{ _APP_ }}-c
+{% if _SERVICE_ == 'database' %}
+        livenessProbe:
+          exec:
+            command:
+              - mysqladmin
+              - ping
+              - -u
+              - root
+              - -proot0018_
+          initialDelaySeconds: 40
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          exec:
+            # Check we can execute queries over TCP (skip-networking is off).
+            command: 
+              - mysql
+              - -u
+              - root
+              - -proot0018_
+              - -e
+              - "SELECT 1"
+          initialDelaySeconds: 25
+          periodSeconds: 2
+          timeoutSeconds: 1
+{% endif %}
+        env:
+        - name: DB_HOST
+          value: zabbixpatrol-db.{{ _USERID_ }}-ns.svc.cluster.local 
+{% for key in configmap.keys() %}
+        - name: {{ key }}
+          valueFrom:
+            configMapKeyRef:
+              name: {{ _APP_ }}-cm
+              key: {{ key }}
+{% endfor %}
+{% for key in secrets.keys() %}
+        - name: {{ key }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ _APP_ }}-sc
+              key: {{ key }}
+{% endfor %}
+        ports:
+        - containerPort: {{ _PORT_ }}
+          protocol: TCP
+{% if _VOLUME_ == 'yes' %}
+        volumeMounts:
+        - mountPath: {{ _MOUNT_PATH_ }}
+          name: pv-app
+      volumes:
+      - name: pv-app
+        persistentVolumeClaim:
+          claimName: {{ _APP_ }}-pvc
+{% endif %}

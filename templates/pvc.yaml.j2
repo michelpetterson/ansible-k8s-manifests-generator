@@ -1,0 +1,15 @@
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ _APP_ }}-pvc
+  namespace: {{ _USERID_ }}-ns
+  labels:
+    app: {{ _APP_ }}
+    type: pvc
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
